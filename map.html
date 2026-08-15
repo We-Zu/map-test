@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国地图ECharts（离线GeoJSON修复版）</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            background: #0f172a;
+        }
+        #map-container {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="map-container"></div>
+
+    <script>
+        const myChart = echarts.init(document.getElementById('map-container'));
+
+        // 【修复核心】读取本地GeoJSON，不再请求 marscode-static.doubaocdn.com
+        fetch('./china.json')
+            .then(response => response.json())
+            .then(geoJson => {
+                // 注册中国地图
+                echarts.registerMap('china', geoJson);
+
+                const option = {
+                    tooltip: {
+                        trigger: 'item'
+                    },
+                    visualMap: {
+                        min: 0,
+                        max: 100,
+                        left: 'left',
+                        top: 'bottom',
+                        text: ['高', '低'],
+                        calculable: true,
+                        inRange: {
+                            color: ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43', '#d73027', '#a50026']
+                        }
+                    },
+                    series: [
+                        {
+                            name: '数据',
+                            type: 'map',
+                            mapType: 'china',
+                            roam: true, // 开启缩放平移
+                            label: {
+                                show: true,
+                                color: '#fff'
+                            },
+                            data: [
+                                // 在这里替换成你的业务数据示例
+                                { name: '广东', value: 88 },
+                                { name: '北京', value: 72 },
+                                { name: '上海', value: 65 }
+                            ]
+                        }
+                    ]
+                };
+
+                myChart.setOption(option);
+                window.addEventListener('resize', () => myChart.resize());
+            })
+            .catch(err => {
+                alert('本地china.json加载失败！检查文件名、文件路径，必须和html放在同一目录，使用Live Server打开！');
+                console.error(err);
+            });
+    </script>
+</body>
+</html>
